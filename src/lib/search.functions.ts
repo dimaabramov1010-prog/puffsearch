@@ -114,7 +114,8 @@ export const puffSearch = createServerFn({ method: "POST" })
             content: `Query: ${data.query}\n\nSearch results:\n${numbered}`,
           },
         ],
-        abortSignal: request.signal,
+        // No abortSignal: the incoming RPC request's signal fires early in dev
+        // and kills the stream; there is no user-facing Stop to propagate.
         providerOptions: {
           openai: {
             store: false,
