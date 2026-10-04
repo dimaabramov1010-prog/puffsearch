@@ -16,9 +16,9 @@ export type SearchResult = {
 };
 
 export type PuffSearchResponse = {
-  answer?: string;
-  results?: SearchResult[];
-  error?: string;
+  answer?: string | undefined;
+  results?: SearchResult[] | undefined;
+  error?: string | undefined;
 };
 
 const ANSWER_SYSTEM_PROMPT = `You are Puff, a pufferfish-powered search engine. You answer the user's query using ONLY the web search results provided.
