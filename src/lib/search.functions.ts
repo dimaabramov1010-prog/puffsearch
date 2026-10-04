@@ -12,7 +12,7 @@ export type SearchResult = {
   title: string;
   url: string;
   snippet: string;
-  date?: string;
+  date?: string | undefined;
 };
 
 export type PuffSearchResponse = {
