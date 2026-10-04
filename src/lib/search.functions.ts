@@ -107,8 +107,8 @@ export const puffSearch = createServerFn({ method: "POST" })
     try {
       const result = streamText({
         model: provider.responses("openai/gpt-6-astra"),
+        system: ANSWER_SYSTEM_PROMPT,
         messages: [
-          { role: "system", content: ANSWER_SYSTEM_PROMPT },
           {
             role: "user",
             content: `Query: ${data.query}\n\nSearch results:\n${numbered}`,
