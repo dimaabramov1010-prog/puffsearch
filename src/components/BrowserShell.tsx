@@ -1,6 +1,28 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { ArrowLeft, ArrowRight, RotateCw, Plus, X, Circle, CircleDot, ExternalLink, Search } from "lucide-react";
 import puffer from "@/assets/puffer.png";
+import { useServerFn } from "@tanstack/react-start";
+import { fetchPage } from "@/lib/proxy.functions";
+
+function SiteFrame({ url, title }: { url: string; title: string }) {
+  const load = useServerFn(fetchPage);
+  const [html, setHtml] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    setHtml(null);
+    setErr(null);
+    load({ data: { url } })
+      .then((r) => alive && (r.error ? setErr(r.error) : setHtml(r.html)))
+      .catch(() => alive && setErr("Failed to load"));
+    return () => {
+      alive = false;
+    };
+  }, [url, load]);
+  if (err) return <div className="p-8 text-center text-muted-foreground">Puff couldn't reach this site: {err}</div>;
+  if (html === null) return <div className="p-8 text-center text-muted-foreground">Loading…</div>;
+  return <iframe srcDoc={html} title={title} sandbox="allow-scripts allow-popups allow-forms" className="w-full flex-1 border-0 bg-white" />;
+}
 
 type Tab = { id: number; title: string; url: string | null };
 type Bookmark = { title: string; url: string };
@@ -205,12 +227,12 @@ export function BrowserShell({
             {t.url ? (
               <div className="flex h-full flex-col">
                 <div className="flex items-center justify-between gap-2 bg-secondary px-3 py-1 text-xs text-muted-foreground">
-                  <span>Some sites refuse to load inside other pages.</span>
+                  <span>Some pages may look different here.</span>
                   <a href={t.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-accent hover:underline">
                     Open in real tab <ExternalLink className="h-3 w-3" />
                   </a>
                 </div>
-                <iframe key={reloadKey} src={t.url} title={t.title} className="w-full flex-1 border-0 bg-card" />
+                <SiteFrame key={reloadKey} url={t.url} title={t.title} />
               </div>
             ) : (
               renderHome(openSite)
