@@ -39,6 +39,9 @@ export function BrowserShell({
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [address, setAddress] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
+  const [bookmarkMenu, setBookmarkMenu] = useState<{ x: number; y: number; url: string } | null>(null);
+  const [editing, setEditing] = useState<Bookmark | null>(null);
+  const [editName, setEditName] = useState("");
 
   useEffect(() => {
     try {
@@ -208,9 +211,9 @@ export function BrowserShell({
               onClick={() => updateActive({ url: b.url, title: b.title })}
               onContextMenu={(e) => {
                 e.preventDefault();
-                saveBookmarks(bookmarks.filter((x) => x.url !== b.url));
+                setBookmarkMenu({ x: e.clientX, y: e.clientY, url: b.url });
               }}
-              title={`${b.url} (right-click to remove)`}
+              title={b.url}
               className="flex max-w-48 shrink-0 items-center gap-1.5 rounded px-2 py-1 text-foreground hover:bg-secondary"
             >
               <img src={`https://www.google.com/s2/favicons?domain=${new URL(b.url).hostname}&sz=32`} alt="" className="h-3.5 w-3.5" />
@@ -234,6 +237,82 @@ export function BrowserShell({
           </div>
         ))}
       </div>
+
+      {/* Bookmark right-click menu */}
+      {bookmarkMenu && (
+        <>
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => setBookmarkMenu(null)}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              setBookmarkMenu(null);
+            }}
+          />
+          <div
+            className="fixed z-50 min-w-36 overflow-hidden rounded-md border border-border bg-popover py-1 text-sm shadow-lg"
+            style={{ left: bookmarkMenu.x, top: bookmarkMenu.y }}
+          >
+            <button
+              onClick={() => {
+                const bm = bookmarks.find((x) => x.url === bookmarkMenu.url);
+                if (bm) {
+                  setEditName(bm.title);
+                  setEditing(bm);
+                }
+                setBookmarkMenu(null);
+              }}
+              className="block w-full px-3 py-1.5 text-left text-popover-foreground hover:bg-secondary"
+            >
+              Edit
+            </button>
+            <button
+              onClick={() => {
+                saveBookmarks(bookmarks.filter((x) => x.url !== bookmarkMenu.url));
+                setBookmarkMenu(null);
+              }}
+              className="block w-full px-3 py-1.5 text-left text-destructive hover:bg-secondary"
+            >
+              Delete
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* Rename dialog */}
+      {editing && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/70" onClick={() => setEditing(null)}>
+          <form
+            onClick={(e) => e.stopPropagation()}
+            onSubmit={(e) => {
+              e.preventDefault();
+              const name = editName.trim() || editing.title;
+              saveBookmarks(bookmarks.map((b) => (b.url === editing.url ? { ...b, title: name } : b)));
+              setEditing(null);
+            }}
+            className="w-72 rounded-lg border border-border bg-card p-4 shadow-xl"
+          >
+            <label htmlFor="bookmark-name" className="mb-2 block text-sm font-medium text-foreground">
+              Bookmark name
+            </label>
+            <input
+              id="bookmark-name"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              autoFocus
+              className="mb-3 w-full rounded-md border border-input bg-muted px-3 py-1.5 text-sm text-foreground outline-none focus:border-ring"
+            />
+            <div className="flex justify-end gap-2">
+              <button type="button" onClick={() => setEditing(null)} className="rounded-md px-3 py-1.5 text-sm text-muted-foreground hover:bg-secondary">
+                Cancel
+              </button>
+              <button type="submit" className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:opacity-90">
+                Save
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 }
