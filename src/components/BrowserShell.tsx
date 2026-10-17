@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { ArrowLeft, ArrowRight, RotateCw, Plus, X, Circle, CircleDot, ExternalLink, Search } from "lucide-react";
+import { ArrowLeft, ArrowRight, RotateCw, Plus, X, Circle, CircleDot, Search } from "lucide-react";
 import puffer from "@/assets/puffer.png";
 import { useServerFn } from "@tanstack/react-start";
 import { fetchPage } from "@/lib/proxy.functions";
@@ -226,12 +226,6 @@ export function BrowserShell({
           <div key={t.id} className={`absolute inset-0 overflow-auto ${t.id === active.id ? "" : "hidden"}`}>
             {t.url ? (
               <div className="flex h-full flex-col">
-                <div className="flex items-center justify-between gap-2 bg-secondary px-3 py-1 text-xs text-muted-foreground">
-                  <span>Some pages may look different here.</span>
-                  <a href={t.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-accent hover:underline">
-                    Open in real tab <ExternalLink className="h-3 w-3" />
-                  </a>
-                </div>
                 <SiteFrame key={reloadKey} url={t.url} title={t.title} />
               </div>
             ) : (
