@@ -39,6 +39,9 @@ export function BrowserShell({
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [address, setAddress] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
+  const [bookmarkMenu, setBookmarkMenu] = useState<{ x: number; y: number; url: string } | null>(null);
+  const [editing, setEditing] = useState<Bookmark | null>(null);
+  const [editName, setEditName] = useState("");
 
   useEffect(() => {
     try {
