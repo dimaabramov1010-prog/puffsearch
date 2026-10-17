@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Fish, Search, ExternalLink, Waves } from "lucide-react";
 
 import puffer from "@/assets/puffer.png";
+import { BrowserShell } from "@/components/BrowserShell";
 import { puffSearch, type PuffSearchResponse } from "@/lib/search.functions";
 
 export const Route = createFileRoute("/")({
@@ -25,7 +26,7 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: PuffSearchPage,
+  component: () => <BrowserShell renderHome={(open) => <PuffSearchPage onOpen={open} />} />,
 });
 
 const SUGGESTIONS = [
@@ -44,7 +45,7 @@ const BUBBLES = [
   { left: "90%", size: 9, duration: 19, delay: 2 },
 ];
 
-function PuffSearchPage() {
+function PuffSearchPage({ onOpen }: { onOpen: (url: string, title: string) => void }) {
   const search = useServerFn(puffSearch);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
@@ -76,7 +77,7 @@ function PuffSearchPage() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-ocean">
+    <div className="relative min-h-full overflow-hidden bg-ocean">
       {/* Ambient bubbles */}
       <div className="pointer-events-none absolute inset-0" aria-hidden>
         {BUBBLES.map((b, i) => (
@@ -94,7 +95,7 @@ function PuffSearchPage() {
         ))}
       </div>
 
-      <main className="relative mx-auto flex min-h-screen w-full max-w-3xl flex-col items-center px-4 pb-24 pt-16 sm:pt-24">
+      <main className="relative mx-auto flex min-h-full w-full max-w-3xl flex-col items-center px-4 pb-24 pt-16 sm:pt-24">
         {/* Mascot + wordmark */}
         <img
           src={puffer}
@@ -214,8 +215,10 @@ function PuffSearchPage() {
                       <a
                         key={r.url}
                         href={r.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          onOpen(r.url, r.title);
+                        }}
                         className="group block rounded-2xl border border-border bg-card/60 p-5 transition-colors hover:border-accent hover:bg-card"
                       >
                         <div className="flex items-start justify-between gap-3">
