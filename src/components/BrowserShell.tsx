@@ -1,11 +1,14 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ArrowLeft, ArrowRight, RotateCw, Plus, X, Circle, CircleDot, Search } from "lucide-react";
 import puffer from "@/assets/puffer.png";
 import { useServerFn } from "@tanstack/react-start";
 import { fetchPage } from "@/lib/proxy.functions";
+import { Button } from "@/components/ui/button";
 
-function SiteFrame({ url, title }: { url: string; title: string }) {
+function SiteFrame({ url, title, onNavigate }: { url: string; title: string; onNavigate: (url: string) => void }) {
   const load = useServerFn(fetchPage);
+  const frameRef = useRef<HTMLIFrameElement>(null);
+  const [attempt, setAttempt] = useState(0);
   const [html, setHtml] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   useEffect(() => {
@@ -18,10 +21,25 @@ function SiteFrame({ url, title }: { url: string; title: string }) {
     return () => {
       alive = false;
     };
-  }, [url, load]);
-  if (err) return <div className="p-8 text-center text-muted-foreground">Puff couldn't reach this site: {err}</div>;
+  }, [url, load, attempt]);
+  useEffect(() => {
+    const receive = (event: MessageEvent) => {
+      if (!frameRef.current || event.source !== frameRef.current.contentWindow ||
+        event.data?.type !== "puff-navigate" || typeof event.data.url !== "string") return;
+      try {
+        const next = new URL(event.data.url);
+        if (/^https?:$/.test(next.protocol)) onNavigate(next.href);
+      } catch { /* Ignore invalid navigation messages. */ }
+    };
+    window.addEventListener("message", receive);
+    return () => window.removeEventListener("message", receive);
+  }, [onNavigate]);
+  if (err) return <div className="p-8 text-center text-muted-foreground" role="alert">
+    <p>{err}</p>
+    <Button variant="outline" className="mt-4" onClick={() => setAttempt((value) => value + 1)}><RotateCw />Try again</Button>
+  </div>;
   if (html === null) return <div className="p-8 text-center text-muted-foreground">Loading…</div>;
-  return <iframe srcDoc={html} title={title} sandbox="allow-scripts allow-popups allow-forms" className="w-full flex-1 border-0 bg-white" />;
+  return <iframe ref={frameRef} srcDoc={html} title={title} sandbox="allow-scripts" className="w-full flex-1 border-0 bg-card" />;
 }
 
 type Tab = { id: number; title: string; url: string | null };
@@ -57,7 +75,7 @@ export function BrowserShell({
     localStorage.setItem("puff-bookmarks", JSON.stringify(b));
   };
 
-  const active = tabs.find((t) => t.id === activeId) ?? tabs[0]!;
+  const active = tabs.find((t) => t.id === activeId) ?? tabs[0] ?? { id: 1, title: "PuffSearch", url: null };
 
   useEffect(() => {
     setAddress(active.url ?? "");
@@ -81,7 +99,8 @@ export function BrowserShell({
         setActiveId(fresh.id);
         return [fresh];
       }
-      if (id === activeId) setActiveId(rest[Math.max(0, idx - 1)]!.id);
+      const neighbor = rest[Math.max(0, idx - 1)];
+      if (id === activeId && neighbor) setActiveId(neighbor.id);
       return rest;
     });
   };
@@ -229,7 +248,9 @@ export function BrowserShell({
           <div key={t.id} className={`absolute inset-0 overflow-auto ${t.id === active.id ? "" : "hidden"}`}>
             {t.url ? (
               <div className="flex h-full flex-col">
-                <SiteFrame key={reloadKey} url={t.url} title={t.title} />
+                <SiteFrame key={reloadKey} url={t.url} title={t.title} onNavigate={(url) =>
+                  setTabs((current) => current.map((tab) => tab.id === t.id ? { ...tab, url, title: new URL(url).hostname } : tab))
+                } />
               </div>
             ) : (
               renderHome(openSite)
