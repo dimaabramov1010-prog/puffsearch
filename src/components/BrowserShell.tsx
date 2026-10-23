@@ -6,10 +6,10 @@ import { fetchPage } from "@/lib/proxy.functions";
 import { Button } from "@/components/ui/button";
 import { AccountButton } from "@/components/AccountButton";
 
-function SiteFrame({ url, title, onNavigate }: { url: string; title: string; onNavigate: (url: string) => void }) {
+function SiteFrame({ url, title, onNavigate, onFail }: { url: string; title: string; onNavigate: (url: string) => void; onFail: () => void }) {
   const load = useServerFn(fetchPage);
   const frameRef = useRef<HTMLIFrameElement>(null);
-  const [attempt, setAttempt] = useState(0);
+  const [attempt] = useState(0);
   const [html, setHtml] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   useEffect(() => {
@@ -35,10 +35,10 @@ function SiteFrame({ url, title, onNavigate }: { url: string; title: string; onN
     window.addEventListener("message", receive);
     return () => window.removeEventListener("message", receive);
   }, [onNavigate]);
-  if (err) return <div className="p-8 text-center text-muted-foreground" role="alert">
-    <p>{err}</p>
-    <Button variant="outline" className="mt-4" onClick={() => setAttempt((value) => value + 1)}><RotateCw />Try again</Button>
-  </div>;
+  useEffect(() => {
+    if (err) onFail();
+  }, [err, onFail]);
+  if (err) return null;
   if (html === null) return <div className="p-8 text-center text-muted-foreground">Loading…</div>;
   return <iframe ref={frameRef} srcDoc={html} title={title} sandbox="allow-scripts" className="w-full flex-1 border-0 bg-card" />;
 }
@@ -269,6 +269,8 @@ export function BrowserShell({
               <div className="flex h-full flex-col">
                 <SiteFrame key={reloadKey} url={t.url} title={t.title} onNavigate={(url) =>
                   setTabs((current) => current.map((tab) => tab.id === t.id ? { ...tab, url, title: new URL(url).hostname } : tab))
+                } onFail={() =>
+                  setTabs((current) => current.map((tab) => tab.id === t.id ? { ...tab, url: null, title: "PuffSearch" } : tab))
                 } />
               </div>
             ) : (
