@@ -4,6 +4,7 @@ import puffer from "@/assets/puffer.png";
 import { useServerFn } from "@tanstack/react-start";
 import { fetchPage } from "@/lib/proxy.functions";
 import { Button } from "@/components/ui/button";
+import { AccountButton } from "@/components/AccountButton";
 
 function SiteFrame({ url, title, onNavigate }: { url: string; title: string; onNavigate: (url: string) => void }) {
   const load = useServerFn(fetchPage);
@@ -234,6 +235,7 @@ export function BrowserShell({
             {bookmarked ? <CircleDot className="h-4 w-4 text-primary" /> : <Circle className="h-4 w-4" />}
           </button>
         </form>
+        <AccountButton />
       </div>
 
       {/* Bookmarks bar */}
