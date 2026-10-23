@@ -4,6 +4,7 @@ import puffer from "@/assets/puffer.png";
 import { useServerFn } from "@tanstack/react-start";
 import { fetchPage } from "@/lib/proxy.functions";
 import { Button } from "@/components/ui/button";
+import { AccountButton } from "@/components/AccountButton";
 
 function SiteFrame({ url, title, onNavigate }: { url: string; title: string; onNavigate: (url: string) => void }) {
   const load = useServerFn(fetchPage);
@@ -46,6 +47,21 @@ type Tab = { id: number; title: string; url: string | null };
 type Bookmark = { title: string; url: string };
 
 let nextId = 2;
+
+const SITES = {
+  google: { url: "https://www.google.com/search?igu=1", title: "Google" },
+  youtube: { url: "https://www.youtube.com/", title: "YouTube" },
+  gemini: { url: "https://gemini.google.com/", title: "Gemini" },
+  claude: { url: "https://claude.ai/", title: "Claude" },
+  wikipedia: { url: "https://en.wikipedia.org/", title: "Wikipedia" },
+};
+const SHORTCUTS: Record<string, { url: string; title: string }> = {
+  google: SITES.google, "google.com": SITES.google,
+  youtube: SITES.youtube, "youtube.com": SITES.youtube,
+  gemini: SITES.gemini, "gemini.google.com": SITES.gemini,
+  claude: SITES.claude, "claude.ai": SITES.claude,
+  wikipedia: SITES.wikipedia, wikpeidia: SITES.wikipedia, "wikipedia.org": SITES.wikipedia, "en.wikipedia.org": SITES.wikipedia,
+};
 
 export function BrowserShell({
   renderHome,
@@ -110,6 +126,8 @@ export function BrowserShell({
   const go = (input: string) => {
     const v = input.trim();
     if (!v) return updateActive({ url: null, title: "PuffSearch" });
+    const shortcut = SHORTCUTS[v.toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/$/, "")];
+    if (shortcut) return updateActive(shortcut);
     const looksUrl = /^https?:\/\//i.test(v) || /^[\w-]+(\.[\w-]+)+(\/.*)?$/.test(v);
     if (looksUrl) {
       const url = /^https?:\/\//i.test(v) ? v : `https://${v}`;
@@ -217,6 +235,7 @@ export function BrowserShell({
             {bookmarked ? <CircleDot className="h-4 w-4 text-primary" /> : <Circle className="h-4 w-4" />}
           </button>
         </form>
+        <AccountButton />
       </div>
 
       {/* Bookmarks bar */}
