@@ -9,3 +9,4 @@
 - [x] Update root head metadata
 - [x] Verify end-to-end in browser (answer + 6 sources render)
 - [x] Fix website preview script errors and verify page navigation and unavailable-site recovery (Wikipedia works; script-dependent sites such as Google remain limited).
+- [ ] Login and sign up pages
