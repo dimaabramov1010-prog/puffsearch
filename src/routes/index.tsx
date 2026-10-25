@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Fish, Search, ExternalLink, Waves } from "lucide-react";
 
 import puffer from "@/assets/puffer.png";
+import logoAsset from "@/assets/puffsearch-logo.png.asset.json";
 import { BrowserShell } from "@/components/BrowserShell";
 import { puffSearch, type PuffSearchResponse } from "@/lib/search.functions";
 import { resolveSiteInput } from "@/lib/sites";
@@ -102,17 +103,15 @@ function PuffSearchPage({ onOpen }: { onOpen: (url: string, title: string) => vo
       </div>
 
       <main className="relative mx-auto flex min-h-full w-full max-w-3xl flex-col items-center px-4 pb-24 pt-16 sm:pt-24">
-        {/* Mascot + wordmark */}
+        {/* Logo */}
+        <h1 className="sr-only">PuffSearch — the pufferfish search engine</h1>
         <img
-          src={puffer}
-          alt="Puff the pufferfish"
-          width={1024}
-          height={1024}
-          className="animate-bob h-32 w-32 drop-shadow-[0_12px_32px_oklch(0.86_0.17_95/0.25)] sm:h-40 sm:w-40"
+          src={logoAsset.url}
+          alt="PuffSearch logo — a pufferfish above the wordmark PuffSearch"
+          width={514}
+          height={432}
+          className="animate-bob w-64 rounded-3xl shadow-[0_12px_48px_oklch(0_0_0/0.45)] ring-1 ring-white/10 sm:w-80"
         />
-        <h1 className="font-display mt-4 text-5xl font-bold tracking-tight text-foreground sm:text-6xl">
-          Puff<span className="text-primary">Search</span>
-        </h1>
         <p className="mt-3 max-w-md text-center text-muted-foreground">
           Ask anything. Puff swims the web and puffs back an answer — with sources.
         </p>
