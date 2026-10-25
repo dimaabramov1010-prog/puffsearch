@@ -6,6 +6,7 @@ import { Fish, Search, ExternalLink, Waves } from "lucide-react";
 import puffer from "@/assets/puffer.png";
 import { BrowserShell } from "@/components/BrowserShell";
 import { puffSearch, type PuffSearchResponse } from "@/lib/search.functions";
+import { resolveSiteInput } from "@/lib/sites";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -64,6 +65,11 @@ function PuffSearchPage({ onOpen }: { onOpen: (url: string, title: string) => vo
   async function runSearch(q: string) {
     const trimmed = q.trim();
     if (!trimmed || loading) return;
+    const site = resolveSiteInput(trimmed);
+    if (site) {
+      onOpen(site.url, site.title);
+      return;
+    }
     setLoading(true);
     setResponse(null);
     try {
